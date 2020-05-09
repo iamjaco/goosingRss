@@ -86,6 +86,9 @@ def getContent(url):
 
         if article.meta_lang:
             content['Language'] = article.meta_lang
+        else:
+            content['Language'] = "Unknown"
+            
 
         if article.publish_datetime_utc:
             content['Published'] = article.publish_datetime_utc
@@ -128,10 +131,15 @@ def is_in_blacklist(content):
     return False
 
 
-def does_have_content(content):
-    link, title, description, image, summary = content
+def is_content_usable(content):
+    link, title, description, image, summary, language = content
     if 'No Content' in content:
         return False
+    
+    if language not in ('en','Unknown'):
+        print("Language " + language + " is excluded")
+        return False
+            
     
     return True
 
@@ -170,14 +178,15 @@ def read_rss(url):
                     pass
                 else:
                     detail =  getContent(link)  
-                    if does_have_content((detail["Canonical"], detail["Title"], detail["Description"], detail["Image"], detail["Summary"])): 
+                    if is_content_usable((detail["Canonical"], detail["Title"], detail["Description"], detail["Image"], detail["Summary"], detail["Language"])): 
                         write_to_linkLog(link, Settings.PostedUrlsOutputFile)
                         print(detail["Title"])
                         print(detail["Summary"])
                         print('---------------')
                         print()
                     else:
-                        print('Link unusable due to miussing content')
+                        print('Link unusable due to unusable content')
+                        print()
 
         
     else:
@@ -188,3 +197,5 @@ def read_rss(url):
     
 for i in getFeed():
         read_rss(url=i)
+
+
